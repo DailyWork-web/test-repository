@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уроки с GitHub</title>
+    <style>
+        /* Немного стиля, чтобы кнопка выглядела современно */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+
+        .btn-open {
+            padding: 15px 30px;
+            font-size: 18px;
+            color: white;
+            background-color: #24292e; /* Цвет GitHub */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-open:hover {
+            background-color: #444d56;
+        }
+
+        .btn-open:active {
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-open" onclick="openLesson()">Открыть урок</button>
+
+    <script>
+        function openLesson() {
+            // ЗАМЕНИ ЭТУ ССЫЛКУ на прямую ссылку к твоему файлу на GitHub
+            const githubUrl = "https://github.com/USER/REPO/blob/main/lesson.md";
+            
+            // Открывает ссылку в новой вкладке
+            window.open(githubUrl, '_blank');
+        }
+    </script>
+
+</body>
+</html>
