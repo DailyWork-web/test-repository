@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Платформа Уроков</title>
+    <style>
+        :root {
+            --gh-green: #2ea44f;
+            --gh-dark: #24292e;
+            --sidebar-bg: #ffffff;
+        }
+
+        body {
+            display: flex;
+            margin: 0;
+            height: 100vh;
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Панель слева */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #d0d7de;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 15px;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .sidebar h3 {
+            font-size: 18px;
+            color: var(--gh-dark);
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gh-green);
+        }
+
+        .lesson-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .lesson-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f6f8fa;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            border: 1px solid #e1e4e8;
+            color: #24292e;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lesson-item:hover {
+            background: #ffffff;
+            border-color: var(--gh-green);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Центральная часть */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-main {
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            background-color: var(--gh-green);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 14px rgba(46, 164, 79, 0.4);
+        }
+
+        .btn-main:hover { transform: translateY(-2px); background-color: #2c974b; }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            font-size: 14px;
+            color: #24292e;
+            background-color: #fff;
+            border: 1.5px solid #24292e;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-secondary:hover { background-color: #f6f8fa; }
+
+        .status { margin-top: 15px; font-size: 13px; color: #666; font-style: italic; }
+        
+        button:disabled { opacity: 0.5; cursor: wait; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h3>Список уроков</h3>
+        <div id="lessonList" class="lesson-list">
+            <div style="padding: 10px; font-size: 13px; color: #666;">Загрузка уроков...</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <button id="btnNew" class="btn-main" onclick="openFileByDate(0)">Открыть самый новый урок</button>
+        <button id="btnOld" class="btn-secondary" onclick="openFileByDate(1)">Предыдущий урок</button>
+        <div id="status" class="status">Анализирую папку со ссылкой...</div>
+    </div>
+
+    <script>
+        // --- НАСТРОЙКИ ССЫЛОК ---
+        const REPO_URL = "https://github.com/DailyWork-web/test-repository"; 
+        const FOLDER_URL = "https://github.com/DailyWork-web/test-repository/tree/main/%D0%A3%D1%80%D0%BE%D0%BA%D0%B8";
+        // ------------------------
+
+        // Функция для извлечения данных из ссылок
+        function parseGithubUrl(repoUrl, folderUrl) {
+            const repoParts = repoUrl.replace(/\/$/, "").split('/');
+            const owner = repoParts[repoParts.length - 2];
+            const repo = repoParts[repoParts.length - 1];
+
+            // Извлекаем путь к папке (всё, что после /tree/main/ или /tree/master/)
+            const folderMatch = folderUrl.match(/\/tree\/[^\/]+\/(.+)$/);
+            const folderPath = folderMatch ? decodeURIComponent(folderMatch[1]) : "";
+
+            return { owner, repo, folderPath };
+        }
+
+        const config = parseGithubUrl(REPO_URL, FOLDER_URL);
+
+        // 1. Загрузка боковой панели
+        async function loadSidebar() {
+            const listDiv = document.getElementById('lessonList');
+            try {
+                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/contents/${encodeURIComponent(config.folderPath)}`);
+                if (!res.ok) throw new Error();
+                const files = await res.json();
+                
+                listDiv.innerHTML = '';
+                files.filter(f => f.type === 'file').forEach(file => {
+                    const div = document.createElement('div');
+                    div.className = 'lesson-item';
+                    div.innerText = file.name;
+                    div.onclick = () => window.open(file.download_url, '_blank');
+                    listDiv.appendChild(div);
+                });
+            } catch (e) {
+                listDiv.innerHTML = '<div style="color:#cf222e; font-size:12px; padding:10px;">Ошибка: проверьте ссылки в коде или название папки.</div>';
+            }
+        }
+
+        // 2. Поиск по дате (через коммиты)
+        async function openFileByDate(index) {
+            const statusDiv = document.getElementById('status');
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+            statusDiv.innerText = "Ищу последние изменения в истории...";
+
+            try {
+                const res = await fetch(`https://api.github.com/repos/${config.owner}/${config.repo}/commits?path=${encodeURIComponent(config.folderPath)}&per_page=10`);
+                const commits = await res.json();
+                
+                const foundFiles = new Set();
+                const orderedFiles = [];
+
+                for (const commit of commits) {
+                    const detail = await (await fetch(commit.url)).json();
+                    for (const file of detail.files) {
+                        if (file.filename.startsWith(config.folderPath) && !foundFiles.has(file.filename)) {
+                            foundFiles.add(file.filename);
+                            orderedFiles.push(file);
+                        }
+                    }
+                    if (orderedFiles.length > index + 1) break;
+                }
+
+                if (orderedFiles[index]) {
+                    window.open(orderedFiles[index].raw_url, '_blank');
+                    statusDiv.innerText = "Открыт файл: " + orderedFiles[index].filename.split('/').pop();
+                } else {
+                    statusDiv.innerText = "Файл не найден в истории";
+                }
+            } catch (e) {
+                statusDiv.innerText = "Ошибка доступа к GitHub API";
+            } finally {
+                buttons.forEach(b => b.disabled = false);
+            }
+        }
+
+        loadSidebar();
+    </script>
+</body>
+</html>
