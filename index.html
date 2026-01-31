@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уроки с GitHub</title>
+    <style>
+        /* Немного стиля, чтобы кнопка выглядела современно */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+
+        .btn-open {
+            padding: 15px 30px;
+            font-size: 18px;
+            color: white;
+            background-color: #24292e; /* Цвет GitHub */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-open:hover {
+            background-color: #444d56;
+        }
+
+        .btn-open:active {
+            transform: translateY(2px);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="btn-open" onclick="openLesson()">Открыть урок</button>
+
+    <script>
+        function openLesson() {
+            // ЗАМЕНИ ЭТУ ССЫЛКУ на прямую ссылку к твоему файлу на GitHub
+            const githubUrl = "https://raw.githubusercontent.com/DailyWork-web/test-repository/refs/heads/main/%D0%A2%D0%B5%D0%BA%D1%81%D1%82%D0%BE%D0%B2%D1%8B%D0%B9%20%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82.txt";
+            
+            // Открывает ссылку в новой вкладке
+            window.open(githubUrl, '_blank');
+        }
+    </script>
+
+</body>
+</html>
